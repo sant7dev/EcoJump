@@ -5,7 +5,7 @@
     <meta name="apple-mobile-web-app-capable" content="yes"> <meta name="apple-mobile-web-app-title" content="EcoJump"> <link rel="apple-touch-icon" href="Principal/Logo.png">
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-    <title>EcoJump - Versão 7.7</title>
+    <title>EcoJump - Versão 0.007</title>
     <style>
         * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
         body {
@@ -172,19 +172,38 @@
             }
         });
 
-        window.addEventListener('touchstart', () => {
-            if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
-                DeviceOrientationEvent.requestPermission();
+            let inclinacaoAtiva = false;
+            let toqueEsquerda = false;
+            let toqueDireita = false;
+
+            function pedirPermissaoSensor() {
+                if (typeof DeviceOrientationEvent !== 'undefined' && typeof DeviceOrientationEvent.requestPermission === 'function') {
+                    DeviceOrientationEvent.requestPermission()
+                        .then(resposta => { if (resposta === 'granted') inclinacaoAtiva = true; })
+                        .catch(e => console.log('Erro ao pedir permissão:', e));
+                } else {
+                    inclinacaoAtiva = true;
+                }
             }
-        }, { once: true });
+            window.addEventListener('touchstart', pedirPermissaoSensor, { once: true });
+
+            canvas.addEventListener('touchstart', (e) => {
+                let toqueX = e.touches[0].clientX;
+                if (toqueX < canvas.width / 2) toqueEsquerda = true;
+                else toqueDireita = true;
+            });
+            canvas.addEventListener('touchend', () => {
+                toqueEsquerda = false;
+                toqueDireita = false;
+            });
 
         function update() {
             if (!jogoAtivo) return;
 
             let config = configFases[faseAtual];
 
-            if (teclas['ArrowLeft']) velocidadeX -= config.aceleracao;
-            else if (teclas['ArrowRight']) velocidadeX += config.aceleracao;
+            if (teclas['ArrowLeft'] || toqueEsquerda) velocidadeX -= config.aceleracao;
+            else if (teclas['ArrowRight'] || toqueDireita) velocidadeX += config.aceleracao;
             
             velocidadeX *= config.atrito;
             personagem.x += velocidadeX;
