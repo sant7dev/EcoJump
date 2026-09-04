@@ -316,7 +316,16 @@
             } catch(e) {}
         }
 
-        function gameLoop() { update(); draw(); requestAnimationFrame(gameLoop); }
+        function gameLoop() {
+            try {
+                update();
+                draw();
+            } catch (e) {
+                console.error("Erro no gameLoop:", e);
+            }
+            requestAnimationFrame(gameLoop);
+        }
+
 
         function gameOver() {
             jogoAtivo = false;
